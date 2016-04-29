@@ -28,7 +28,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/log"
 
-	"github.com/prometheus/pushgateway/handler"
+	"github.com/hryamzik/pushgateway/handler"
 	"github.com/prometheus/pushgateway/storage"
 )
 
