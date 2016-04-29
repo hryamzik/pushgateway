@@ -56,11 +56,13 @@ func main() {
 	r.Handler("GET", *metricsPath, prometheus.Handler())
 
 	// Handlers for pushing and deleting metrics.
-	r.PUT("/metrics/job/:job/*labels", handler.Push(ms, true))
-	r.POST("/metrics/job/:job/*labels", handler.Push(ms, false))
+	r.PUT("/metrics/job/:job/*labels", handler.Push(ms, true, false))
+	r.POST("/metrics/job/:job/*labels", handler.Push(ms, false, false))
+	r.POST("/metrics/append/job/:job/*labels", handler.Push(ms, false, true))
 	r.DELETE("/metrics/job/:job/*labels", handler.Delete(ms))
-	r.PUT("/metrics/job/:job", handler.Push(ms, true))
-	r.POST("/metrics/job/:job", handler.Push(ms, false))
+	r.PUT("/metrics/job/:job", handler.Push(ms, true, false))
+	r.POST("/metrics/job/:job", handler.Push(ms, false, false))
+	r.POST("/metrics/append/job/:job", handler.Push(ms, false, true))
 	r.DELETE("/metrics/job/:job", handler.Delete(ms))
 
 	// Handlers for the deprecated API.

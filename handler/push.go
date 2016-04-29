@@ -19,6 +19,7 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -42,7 +43,7 @@ import (
 //
 // The returned handler is already instrumented for Prometheus.
 func Push(
-	ms storage.MetricStore, replace bool,
+	ms storage.MetricStore, replace bool, appendCounters bool,
 ) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 	var ps httprouter.Params
 	var mtx sync.Mutex // Protects ps.
@@ -100,6 +101,21 @@ func Push(
 				return
 			}
 			sanitizeLabels(metricFamilies, labels)
+			if appendCounters {
+				for _, mf := range ms.GetMetricFamilies() {
+					if newMf, ok := metricFamilies[*mf.Name]; ok {
+						if *newMf.Type == dto.MetricType_COUNTER {
+							for _, metric := range mf.Metric {
+								for _, newMetric := range newMf.Metric {
+									if reflect.DeepEqual(metric.Label, newMetric.Label) {
+										*newMetric.Counter.Value = *newMetric.Counter.Value + *metric.Counter.Value
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			ms.SubmitWriteRequest(storage.WriteRequest{
 				Labels:         labels,
 				Timestamp:      time.Now(),
